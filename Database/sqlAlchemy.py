@@ -184,3 +184,11 @@ for ol in c1.orders[1].order_lines:
 session.query(Item).filter(Item.name.ilike("wa%")).all()
 session.query(Item).filter(Item.name.ilike("wa%")).order_by(Item.cost_price).all()
 
+# descending order
+session.query(Item).filter(Item.name.ilike("wa%")).order_by(desc(Item.cost_price)).all()
+
+session.query(Customer).join(Order).all()
+
+# print(session.query(Customer).join(Order))
+
+session.query(Customer.id, Customer.username, Order.id).join(Order).all()
