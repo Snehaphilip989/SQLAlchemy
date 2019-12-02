@@ -1,8 +1,12 @@
 from sqlalchemy import Column, Integer, String, Numeric, ForeignKey
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session, relationship
+from sqlalchemy import desc, func, cast, Date, distinct, union, DateTime, text, join, update
 from sqlalchemy import create_engine
+from sqlalchemy import or_, and_, not_
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.exc import IntegrityError
+from datetime import datetime
+
 
 
 engine = create_engine('sqlite:////web/Sqlite-Data/example.db')
@@ -11,15 +15,28 @@ Base = declarative_base()
 
 
 class Customer(Base):
-    __tablename__ = 'Customer'
+    __tablename__ = 'customers'
 
-    id = Column(Integer, primary_key=True)
-    first_name = Column(String)
-    last_name = Column(String)
-    username = Column(String)
-    email = Column(String)
-    address = Column(String)
-    town = Column(String)
+    id = Column(Integer(), primary_key=True)
+    first_name = Column(String(100), nullable=False)
+    last_name = Column(String(100), nullable=False)
+    username = Column(String(50), nullable=False)
+    email = Column(String(200), nullable=False)
+    address = Column(String(200), nullable=False)
+    town = Column(String(50), nullable=False)
+    created_on = Column(DateTime(), default=datetime.now)
+    updated_on = Column(DateTime(), default=datetime.now, onupdate=datetime.now)
+    orders = relationship("Order", backref='customer')
+
+
+class OrderLine(Base):
+    __tablename__ = 'order_lines'
+    id = Column(Integer(), primary_key=True)
+    order_id = Column(Integer(), ForeignKey('orders.id'))
+    item_id = Column(Integer(), ForeignKey('items.id'))
+    quantity = Column(Integer())
+    order = relationship("Order", backref='order_lines')
+    item = relationship("Item")
 
 
 class Item(Base):
@@ -30,7 +47,6 @@ class Item(Base):
     selling_price = Column(Numeric(10, 2), nullable=False)
     quantity = Column(Integer(), nullable=False)
 
-
 class Order(Base):
     __tablename__ = 'orders'
     id = Column(Integer(), primary_key=True)
@@ -38,14 +54,8 @@ class Order(Base):
     date_placed = Column(DateTime(), default=datetime.now, nullable=False)
     date_shipped = Column(DateTime())
 
-class OrderLine(Base):
-    __tablename__ = 'order_lines'
-    id = Column(Integer(), primary_key=True)
-    order_id = Column(Integer(), ForeignKey('orders.id'))
-    item_id = Column(Integer(), ForeignKey('items.id'))
-    quantity = Column(Integer())
-    order = relationship("Order", backref='order_lines')
-    item = relationship("Item")
+
+
 
 def dispatch_order(order_id):
     # check whether order_id is valid or not
@@ -77,7 +87,6 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
 
-
 c1 = Customer(first_name='Toby',
               last_name='Miller',
               username='tmiller',
@@ -96,9 +105,8 @@ c2 = Customer(first_name='Scott',
 
 session.add(c1)
 session.add(c2)
-
+session.new
 session.commit()
-
 
 c3 = Customer(
     first_name="John",
@@ -207,7 +215,6 @@ session.query(Customer).filter(and_(
     Customer.town == 'Norfolk'
 )).all()
 
-
 # find all johns who don't live in Peterbrugh
 
 session.query(Customer).filter(and_(
@@ -254,7 +261,6 @@ i = session.query(Item).get(8)
 i.selling_price = 25.91
 session.add(i)
 session.commit()
-
 
 # update quantity of all quantity of items to 60 whose name starts with 'W'
 
