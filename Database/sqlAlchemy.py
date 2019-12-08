@@ -1,13 +1,11 @@
 from sqlalchemy import Column, Integer, String, Numeric, ForeignKey
 from sqlalchemy.orm import sessionmaker, Session, relationship
-from sqlalchemy import desc, func, cast, Date, distinct, union, DateTime, text, join, update
 from sqlalchemy import create_engine
-from sqlalchemy import or_, and_, not_
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy import desc, func, cast, Date, distinct, union, DateTime, text, join, update
+from sqlalchemy import or_, and_, not_
 from datetime import datetime
-
-
+from sqlalchemy.exc import IntegrityError
 
 engine = create_engine('sqlite:////web/Sqlite-Data/example.db')
 
@@ -29,16 +27,6 @@ class Customer(Base):
     orders = relationship("Order", backref='customer')
 
 
-class OrderLine(Base):
-    __tablename__ = 'order_lines'
-    id = Column(Integer(), primary_key=True)
-    order_id = Column(Integer(), ForeignKey('orders.id'))
-    item_id = Column(Integer(), ForeignKey('items.id'))
-    quantity = Column(Integer())
-    order = relationship("Order", backref='order_lines')
-    item = relationship("Item")
-
-
 class Item(Base):
     __tablename__ = 'items'
     id = Column(Integer(), primary_key=True)
@@ -54,7 +42,14 @@ class Order(Base):
     date_placed = Column(DateTime(), default=datetime.now, nullable=False)
     date_shipped = Column(DateTime())
 
-
+class OrderLine(Base):
+    __tablename__ = 'order_lines'
+    id = Column(Integer(), primary_key=True)
+    order_id = Column(Integer(), ForeignKey('orders.id'))
+    item_id = Column(Integer(), ForeignKey('items.id'))
+    quantity = Column(Integer())
+    order = relationship("Order", backref='order_lines')
+    item = relationship("Item")
 
 
 def dispatch_order(order_id):
